@@ -21,14 +21,13 @@ COPY .yarnrc.yml ./
 
 # Copy only package.json to leverage Docker cache
 COPY package.json ./
-COPY yarn.lock ./
 
 # Enable corepack and prepare yarn 4.12.0
 RUN corepack enable && \
     corepack prepare yarn@4.12.0 --activate
 
 # Install dependencies with immutable lockfile
-RUN yarn install --immutable
+RUN yarn install
 
 FROM base AS build
 WORKDIR /usr/src/wpp-server
