@@ -19,15 +19,15 @@ RUN apk update && \
 # To make sure yarn 4 uses node-modules linker
 COPY .yarnrc.yml ./
 
-# Copy only package.json to leverage Docker cache
-COPY package.json ./
+# Copy package.json and yarn.lock to leverage Docker cache
+COPY package.json yarn.lock ./
 
-# Enable corepack and prepare yarn 4.12.0
+# Enable corepack and prepare yarn 4.13.0 (must match packageManager in package.json)
 RUN corepack enable && \
-    corepack prepare yarn@4.12.0 --activate
+    corepack prepare yarn@4.13.0 --activate
 
 # Install dependencies with immutable lockfile
-RUN yarn install
+RUN yarn install --immutable
 
 FROM base AS build
 WORKDIR /usr/src/wpp-server
