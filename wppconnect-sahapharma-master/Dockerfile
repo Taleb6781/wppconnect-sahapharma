@@ -1,0 +1,48 @@
+FROM node:22.22.2-alpine AS base
+WORKDIR /usr/src/wpp-server
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
+# Install build dependencies and runtime libraries for sharp
+RUN apk update && \
+    apk add --no-cache \
+    vips \
+    vips-dev \
+    fftw-dev \
+    gcc \
+    g++ \
+    make \
+    libc6-compat \
+    pkgconfig \
+    python3 \
+    && rm -rf /var/cache/apk/*
+
+# To make sure yarn 4 uses node-modules linker
+COPY .yarnrc.yml ./
+
+# Copy package.json and yarn.lock to leverage Docker cache
+COPY package.json yarn.lock ./
+
+# Enable corepack and prepare yarn 4.13.0 (must match packageManager in package.json)
+RUN corepack enable && \
+    corepack prepare yarn@4.13.0 --activate
+
+# Install dependencies with immutable lockfile
+RUN yarn install --immutable
+
+FROM base AS build
+WORKDIR /usr/src/wpp-server
+COPY . .
+RUN yarn install
+RUN yarn build
+
+FROM build AS runtime
+WORKDIR /usr/src/wpp-server/
+
+# Install runtime dependencies (chromium and vips libraries)
+RUN apk add --no-cache \
+    chromium \
+    vips \
+    fftw
+
+EXPOSE 21465
+ENTRYPOINT ["node", "dist/server.js"]
