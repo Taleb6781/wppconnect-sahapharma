@@ -1,4 +1,8 @@
 FROM devlikeapro/waha:latest
 
-# WAHA is pre-configured, just expose the port
+# Set API key and default session config
+ENV WHATSAPP_API_KEY=THISISMYSECURETOKEN
+ENV WHATSAPP_DEFAULT_ENGINE=WEBJS
+ENV WAHA_LOG_LEVEL=info
+
 EXPOSE 3000
